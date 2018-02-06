@@ -8,16 +8,47 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <EditText
-            android:id="@+id/etSearch"
+        <LinearLayout
+            android:id="@+id/rlSearch"
             android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_height="56dp"
+            android:padding="8dp"
+            android:background="@color/colorPrimaryDark">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
+            <EditText
+                android:id="@+id/txtSearch"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.2"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:background="@drawable/rounded_edittext"
+                android:textColor="@color/black"
+                android:textColorHint="@color/darkGray"
+                android:hint="Search news here.."/>
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.8"
+                android:background="@color/transparent"
+                android:textAllCaps="false"
+                android:textSize="18sp"
+                android:text="Cancel"
+                android:visibility="gone"/>
+        </LinearLayout>
+
 
         <ListView
             android:id="@+id/listview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/etSearch"
+            android:layout_below="@+id/rlSearch"
             android:layout_marginBottom="50dp">
         </ListView>
 
