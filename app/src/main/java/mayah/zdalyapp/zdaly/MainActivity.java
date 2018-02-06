@@ -14,10 +14,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
+import org.json.JSONObject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import mayah.zdalyapp.zdaly.fragments.DailyNewsFragment;
+import mayah.zdalyapp.zdaly.fragments.DailyNewsWebViewFragment;
 
 public class MainActivity extends FragmentActivity {
 
@@ -93,6 +96,14 @@ public class MainActivity extends FragmentActivity {
                         loadingView.setVisibility(View.GONE);
                     }
                 });
+    }
+
+    public void showDailyNewsWebView(JSONObject object) {
+        DailyNewsWebViewFragment dailyNewsWebViewFragment = DailyNewsWebViewFragment.newInstance(object);
+
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.add(R.id.frame_container, dailyNewsWebViewFragment);
+        ft.commit();
     }
 
     @OnClick(R.id.btnDailyNews)

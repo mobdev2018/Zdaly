@@ -65,6 +65,14 @@
                 android:layout_height="30dp"
                 android:layout_centerVertical="true"
                 android:background="@drawable/icon_prev"/>
+            <Button
+                android:id="@+id/btnShareSelectedNews"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginLeft="8dp"
+                android:layout_centerVertical="true"
+                android:background="@drawable/share_white"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/btnHome"
@@ -80,6 +88,25 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:background="@drawable/icon_next"/>
+
+            <LinearLayout
+                android:id="@+id/selectAllView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:text="Select All"/>
+                <ImageView
+                    android:id="@+id/imgSelectAll"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp" />
+            </LinearLayout>
         </RelativeLayout>
     </RelativeLayout>
 

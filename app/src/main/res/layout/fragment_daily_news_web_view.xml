@@ -4,10 +4,53 @@
     android:layout_height="match_parent"
     tools:context="mayah.zdalyapp.zdaly.fragments.DailyNewsWebViewFragment">
 
-    <WebView
-        android:id="@+id/webView"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </WebView>
+        <WebView
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </WebView>
+
+        <RelativeLayout
+            android:id="@+id/rlBottomBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:background="@color/darkGray">
+
+            <Button
+                android:id="@+id/btnPrev"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerVertical="true"
+                android:background="@drawable/left"/>
+
+            <Button
+                android:id="@+id/btnHome"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerInParent="true"
+                android:background="@drawable/home"/>
+
+            <Button
+                android:id="@+id/btnShare"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/share_white"/>
+        </RelativeLayout>
+    </RelativeLayout>
+
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
 
 </FrameLayout>

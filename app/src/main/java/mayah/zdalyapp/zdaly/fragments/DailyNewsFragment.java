@@ -1,7 +1,7 @@
 package mayah.zdalyapp.zdaly.fragments;
 
-import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,6 +23,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -34,13 +40,28 @@ import mayah.zdalyapp.zdaly.util.Util;
 
 public class DailyNewsFragment extends Fragment {
 
+    public static final int FILTER_NONE = 0;
+    public static final int FILTER_DATE = 1;
+    public static final int FILTER_SEARCH = 2;
+
     @BindView(R.id.listview)
     ListView listView;
     @BindView(R.id.txtSearch)
     EditText txtSearch;
     @BindView(R.id.btnCancel)
     Button btnCancel;
-
+    @BindView(R.id.btnPrev)
+    Button btnPrev;
+    @BindView(R.id.btnNext)
+    Button btnNext;
+    @BindView(R.id.btnShareSelectedNews)
+    Button btnShareSelectedNews;
+    @BindView(R.id.selectAllView)
+    View selectAllView;
+    @BindView(R.id.imgSelectAll)
+    ImageView imgSelectAll;
+    @BindView(R.id.btnHome)
+    Button btnHome;
 
     String userid;
     boolean isSearchEnabled = false;
@@ -75,8 +96,7 @@ public class DailyNewsFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        ((MainActivity)getActivity()).showLoadingDialog("Latest News..");
-        new getDailyNews().execute();
+        apiCallToGetDailyNewsData();
     }
 
     @OnFocusChange(R.id.txtSearch)
@@ -91,17 +111,133 @@ public class DailyNewsFragment extends Fragment {
 
     @OnClick(R.id.btnCancel)
     public void onCancel() {
+        txtSearch.setText("");
         txtSearch.clearFocus();
         btnCancel.setVisibility(View.GONE);
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        hideSelectAllViewFromBottomBar();
+        apiCallToGetDailyNewsData();
     }
 
+    @OnClick(R.id.selectAllView)
+    public void onSelectAllView() {
+        if (selectAllView.getTag() != null && ((int)selectAllView.getTag()) == 1) {
+            selectAllView.setTag(0);
+            imgSelectAll.setImageBitmap(null);
+            searchedNewsToShareArr = new JSONArray();
+        } else {
+            selectAllView.setTag(1);
+            imgSelectAll.setImageResource(R.drawable.icon_check);
+            searchedNewsToShareArr = new JSONArray();
+            searchedNewsToShareArr = searchedNewsArr;
+        }
+
+        listAdapter = new DailyNewsListAdapter(getActivity());
+        listView.setAdapter(listAdapter);
+    }
+
+    @OnClick(R.id.btnShareSelectedNews)
+    public void onShareSelectedSearchNews() {
+        if (searchedNewsToShareArr.length() > 0) {
+            JSONArray activityItems = new JSONArray();
+//            activityItems.put()
+
+
+
+
+
+
+
+
+
+
+            
+        }
+    }
+
+    @OnClick(R.id.btnHome)
+    public void onHome() {
+        apiCallToGetDailyNewsData();
+    }
+
+    @OnClick(R.id.btnNext)
+    public void onNext() {
+        int tag = (int)btnNext.getTag();
+        if (tag != 0) {
+            apiCallToGetFilteredNewsOf_date(getPreviousAndNextDateBy(tag));
+            btnPrev.setTag(tag);
+            btnNext.setTag(tag-1);
+        } else {
+            apiCallToGetDailyNewsData();
+        }
+    }
+
+    @OnClick(R.id.btnPrev)
+    public void onPrev() {
+        int tag = (int)btnPrev.getTag();
+        btnPrev.setTag(tag+1);
+        btnNext.setTag(tag-1);
+        apiCallToGetFilteredNewsOf_date(getPreviousAndNextDateBy(tag+1));
+    }
+
+    private String getPreviousAndNextDateBy(int dayCount) {
+        Calendar calendar = Calendar.getInstance();
+        Date currentTime = calendar.getTime();
+        calendar.setTime(currentTime);
+        calendar.add(Calendar.DAY_OF_YEAR, -dayCount);
+        Date newDate = calendar.getTime();
+        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+        String date = dateFormat.format(newDate).toString();
+        return date;
+    }
+
+    private void hideSelectAllViewFromBottomBar() {
+        btnNext.setVisibility(View.VISIBLE);
+        btnPrev.setVisibility(View.VISIBLE);
+        btnHome.setVisibility(View.VISIBLE);
+        btnShareSelectedNews.setVisibility(View.GONE);
+        selectAllView.setVisibility(View.GONE);
+        initializeSearchCollections();
+    }
+
+    private void initializeSearchCollections() {
+        searchedNewsArr = new JSONArray();
+        searchedNewsToShareArr = new JSONArray();
+    }
+
+    private void apiCallToGetDailyNewsData() {
+        btnPrev.setTag(0);
+        btnNext.setTag(0);
+
+        ((MainActivity)getActivity()).showLoadingDialog("Latest News..");
+        new getDailyNews().execute();
+    }
+
+    private void apiCallToGetFilteredNewsOf_date(String date) {
+        ((MainActivity)getActivity()).showLoadingDialog("Getting news on " + date);
+        new getDailyNews(FILTER_DATE, date).execute();
+    }
 
     class getDailyNews extends AsyncTask<Void, String, String> {
 
+        String date = "";
+        String search = "";
+        int filter = FILTER_NONE;
         String response;
 
         public getDailyNews() {
+            filter = FILTER_NONE;
+            this.date = "";
+            this.search = "";
+        }
+
+        public getDailyNews(int filter, String value) {
+            this.filter = filter;
+            if (filter == FILTER_DATE) {
+                this.date = value;
+            } else if (filter == FILTER_SEARCH) {
+                this.search = value;
+            }
         }
 
         @Override
@@ -112,7 +248,21 @@ public class DailyNewsFragment extends Fragment {
         @Override
         protected String doInBackground(Void... params) {
             try {
-                response = Util.getRequest(Constant.DAILY_NEWS_URL + "?id=" + userid);
+                switch (filter) {
+                    case FILTER_NONE:
+                        response = Util.getRequest(Constant.DAILY_NEWS_URL + "?id=" + userid);
+                        break;
+                    case FILTER_DATE:
+                        response = Util.getRequest(Constant.DAILY_NEWS_URL + "?id=" + userid + "&date=" + date);
+                        break;
+                    case FILTER_SEARCH:
+                        response = Util.getRequest(Constant.DAILY_NEWS_URL + "?id=" + userid + "&search=" + search);
+                        break;
+                    default:
+                        response = Util.getRequest(Constant.DAILY_NEWS_URL + "?id=" + userid);
+                        break;
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -127,7 +277,6 @@ public class DailyNewsFragment extends Fragment {
                 String status = jObj.optString("state");
 
                 if (status.equals("success")) {
-                    ((MainActivity)getActivity()).hideLoadingDialog();
 
                     if (isSearchEnabled) {
                         searchedNewsArr = new JSONArray();
@@ -143,7 +292,7 @@ public class DailyNewsFragment extends Fragment {
                         newsArr = jObj.optJSONArray("result");
                     }
 
-                    listAdapter = new DailyNewsListAdapter(getActivity(), newsArr);
+                    listAdapter = new DailyNewsListAdapter(getActivity());
                     listView.setAdapter(listAdapter);
                 } else {
                     ((MainActivity)getActivity()).hideLoadingDialog();
@@ -161,21 +310,19 @@ public class DailyNewsFragment extends Fragment {
 
         private Context mContext;
         private LayoutInflater inflater = null;
-        JSONArray locallist;
 
-        public DailyNewsListAdapter(Context context, JSONArray locallist) {
+        public DailyNewsListAdapter(Context context) {
             this.mContext = context;
-            this.locallist = locallist;
             inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         private void add(JSONObject object) {
-            locallist.put(object);
+            newsArr.put(object);
         }
 
         @Override
         public int getCount() {
-            return locallist.length();
+            return newsArr.length();
         }
 
         @Override
@@ -197,7 +344,7 @@ public class DailyNewsFragment extends Fragment {
             view.setTag(holder);
 
             try {
-                JSONObject object = (JSONObject) locallist.get(position);
+                final JSONObject object = (JSONObject) newsArr.get(position);
 
                 holder.txtTitle.setText(object.optString("TITLE", ""));
                 holder.txtContent.setText(object.optString("DES", ""));
@@ -217,8 +364,24 @@ public class DailyNewsFragment extends Fragment {
                 } else {
                     holder.btnSelectCheck.setVisibility(View.VISIBLE);
                     holder.txtDate.setVisibility(View.VISIBLE);
-
                 }
+
+                holder.btnShare.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        String title  = object.optString("TITLE", "");
+                        String link = object.optString("LINK", "");
+
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        shareIntent.setType("text/plain");
+                        shareIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, link);
+
+                        startActivity(Intent.createChooser(shareIntent, "Share"));
+
+                    }
+                });
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -230,11 +393,7 @@ public class DailyNewsFragment extends Fragment {
                     try {
                         JSONObject newsDict = isSearchEnabled ? searchedNewsArr.getJSONObject(position) : newsArr.getJSONObject(position);
 
-                        DailyNewsWebViewFragment dailyNewsWebViewFragment = DailyNewsWebViewFragment.newInstance(newsDict);
-
-                        final FragmentTransaction ft = getFragmentManager().beginTransaction();
-                        ft.replace(R.id.listview, dailyNewsWebViewFragment, "DailyNewsWebViewFragmentTag");
-                        ft.commit();
+                        ((MainActivity)getActivity()).showDailyNewsWebView(newsDict);
 
                     } catch (JSONException e) {
 
@@ -247,7 +406,6 @@ public class DailyNewsFragment extends Fragment {
         }
 
     }
-
 
 
     static class ViewHolder {
@@ -269,8 +427,6 @@ public class DailyNewsFragment extends Fragment {
             ButterKnife.bind(this, view);
         }
     }
-
-
 
     private void toast(CharSequence text) {
         Toast.makeText(getActivity(), text, Toast.LENGTH_SHORT).show();
