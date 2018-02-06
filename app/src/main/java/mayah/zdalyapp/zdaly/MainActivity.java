@@ -1,18 +1,17 @@
 package mayah.zdalyapp.zdaly;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.support.v4.app.FragmentActivity;
 import android.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 
 import butterknife.BindView;
@@ -30,9 +29,13 @@ public class MainActivity extends FragmentActivity {
     Button btnSpotPrices;
     @BindView(R.id.btnWeatherForecast)
     Button btnWeatherForecast;
-
     @BindView(R.id.frame_container)
     FrameLayout frameLayout;
+
+    @BindView(R.id.loadingView)
+    RelativeLayout loadingView;
+    @BindView(R.id.txtLoading)
+    TextView txtLoading;
 
     private int selectedIndex = 1;
 
@@ -72,6 +75,24 @@ public class MainActivity extends FragmentActivity {
             fragmentTransaction.replace(R.id.frame_container, fragment).commit();
 
         }
+    }
+
+    public void showLoadingDialog(String text) {
+        txtLoading.setText(text);
+        loadingView.setVisibility(View.VISIBLE);
+    }
+
+    public void hideLoadingDialog() {
+        loadingView.animate()
+                .alpha(0.0f)
+                .setDuration(200)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        super.onAnimationCancel(animation);
+                        loadingView.setVisibility(View.GONE);
+                    }
+                });
     }
 
     @OnClick(R.id.btnDailyNews)

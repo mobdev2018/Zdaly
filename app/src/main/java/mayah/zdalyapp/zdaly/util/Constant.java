@@ -12,7 +12,7 @@ public class Constant {
 
     public static String URL = "https://zdaly.com";
     public static String AUTHENTICATE_URL = "https://zdaly.com/account/autorize";
-    public static String DAILY_NEWS_URL = "https://zdaly.com/new/newlist";
+    public static String DAILY_NEWS_URL = "https://zdaly.com/new/newslist";
     public static String KEY_TRENDS_URL = "https://zdaly.com/new/chartlist";
     public static String SPOT_PRICES_URL = "https://zdaly.com/new/stocklist";
     public static String WEATHER_FORECAST_URL = "https://zdaly.com/new/weathermarinelist";
