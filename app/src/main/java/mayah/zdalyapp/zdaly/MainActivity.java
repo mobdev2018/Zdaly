@@ -84,6 +84,7 @@ public class MainActivity extends FragmentActivity {
 
     public void showLoadingDialog(String text) {
         txtLoading.setText(text);
+        loadingView.setAlpha(1);
         loadingView.setVisibility(View.VISIBLE);
     }
 
