@@ -31,6 +31,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import mayah.zdalyapp.zdaly.util.Constant;
+import mayah.zdalyapp.zdaly.util.SetImageFromURL;
 import mayah.zdalyapp.zdaly.util.Util;
 
 public class LoginActivity extends AppCompatActivity {
@@ -171,7 +172,8 @@ public class LoginActivity extends AppCompatActivity {
                     editor.apply();
 
                     String logoUrl = "http://74.63.228.198/DownloadCsv/" + userId + ".jpg";
-                    new SetImageFromURL(logoUrl).execute();
+
+                    new SetImageFromURL(logoIv, logoUrl).execute();
 
                     loadingView.setVisibility(View.GONE);
                     Intent i = new Intent(LoginActivity.this, MainActivity.class);
@@ -194,41 +196,6 @@ public class LoginActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 loadingView.setVisibility(View.GONE);
                 e.printStackTrace();
-            }
-        }
-    }
-
-    class SetImageFromURL extends AsyncTask<Void, Bitmap, Bitmap> {
-        String strURL;
-        Bitmap bitmap;
-
-        public SetImageFromURL(String url) {
-            this.strURL = url;
-        }
-
-        @Override
-        protected Bitmap doInBackground(Void... params) {
-            try {
-                URL url = new URL(strURL);
-                HttpURLConnection connection = (HttpURLConnection) url
-                        .openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-
-                InputStream is = url.openStream(); //connection.getInputStream();
-                bitmap = BitmapFactory.decodeStream(is);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-            return bitmap;
-        }
-
-        protected void onPostExecute(Bitmap result) {
-            super.onPostExecute(result);
-            if (result != null) {
-                logoIv.setImageBitmap(result);
             }
         }
     }

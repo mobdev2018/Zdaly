@@ -167,7 +167,7 @@ public class SpotPricesFragment extends Fragment {
 
                         holder.txtName.setText(spotPriceDict.optString("Name", ""));
                         float lastTradePriceOnly = (float) spotPriceDict.optDouble("LastTradePriceOnly", 0.0f);
-                        holder.txtOrigin.setText(String.valueOf(lastTradePriceOnly));
+                        holder.txtOrigin.setText(String.format("%.2f", lastTradePriceOnly));
                         holder.txtChange.setText(spotPriceDict.optString("Change", ""));
 
                         break;

@@ -22,6 +22,7 @@ import butterknife.OnClick;
 import mayah.zdalyapp.zdaly.fragments.DailyNewsFragment;
 import mayah.zdalyapp.zdaly.fragments.DailyNewsWebViewFragment;
 import mayah.zdalyapp.zdaly.fragments.SpotPricesFragment;
+import mayah.zdalyapp.zdaly.fragments.WeatherForecastFragment;
 
 public class MainActivity extends FragmentActivity {
 
@@ -68,6 +69,7 @@ public class MainActivity extends FragmentActivity {
                 fragment = SpotPricesFragment.newInstance();
                 break;
             case 4:
+                fragment = WeatherForecastFragment.newInstance();
                 break;
             default:
                 break;
