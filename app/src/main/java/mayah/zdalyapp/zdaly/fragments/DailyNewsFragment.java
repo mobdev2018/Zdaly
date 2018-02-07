@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,8 +25,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-import java.security.acl.LastOwnerException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -37,7 +34,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnFocusChange;
-import butterknife.OnTextChanged;
 import mayah.zdalyapp.zdaly.MainActivity;
 import mayah.zdalyapp.zdaly.R;
 import mayah.zdalyapp.zdaly.util.Constant;
@@ -320,7 +316,6 @@ public class DailyNewsFragment extends Fragment {
             ((MainActivity)getActivity()).hideLoadingDialog();
 
             try {
-                Log.e("=++++++++", result);
                 JSONObject jObj = new JSONObject(result);
                 String status = jObj.optString("state");
 
@@ -370,7 +365,6 @@ public class DailyNewsFragment extends Fragment {
                 len = searchedNewsArr.length();
             else
                 len = newsArr.length();
-            Log.e("length====", String.valueOf(len));
             return len;
         }
 
@@ -392,7 +386,6 @@ public class DailyNewsFragment extends Fragment {
             view = inflater.inflate(R.layout.row_daily_news, null);
             holder = new ViewHolder(view);
             view.setTag(holder);
-            Log.e("--------", String.valueOf(position));
 
             try {
                 JSONObject object = null;

@@ -21,6 +21,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import mayah.zdalyapp.zdaly.fragments.DailyNewsFragment;
 import mayah.zdalyapp.zdaly.fragments.DailyNewsWebViewFragment;
+import mayah.zdalyapp.zdaly.fragments.SpotPricesFragment;
 
 public class MainActivity extends FragmentActivity {
 
@@ -64,6 +65,7 @@ public class MainActivity extends FragmentActivity {
             case 2:
                 break;
             case 3:
+                fragment = SpotPricesFragment.newInstance();
                 break;
             case 4:
                 break;
