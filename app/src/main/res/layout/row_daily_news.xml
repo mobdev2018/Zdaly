@@ -64,13 +64,21 @@
                 android:text="22/12/2017"/>
 
         </LinearLayout>
-        <Button
-            android:id="@+id/btnSelectCheck"
+        <LinearLayout
+            android:id="@+id/viewSelectCheck"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/un_check"/>
+            android:background="@drawable/un_check">
+            <Button
+                android:id="@+id/btnSelectCheck"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="3dp"
+                android:background="@color/transparent"/>
+        </LinearLayout>
+
     </RelativeLayout>
 
     <LinearLayout

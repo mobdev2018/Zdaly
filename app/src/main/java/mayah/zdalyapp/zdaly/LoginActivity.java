@@ -141,7 +141,20 @@ public class LoginActivity extends AppCompatActivity {
 
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            Log.e("================", result);
+            if (result == null) {
+                loadingView.animate()
+                        .alpha(0.0f)
+                        .setDuration(200)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+                                super.onAnimationCancel(animation);
+                                loadingView.setVisibility(View.GONE);
+                            }
+                        });
+                toast("Login failed and try again.");
+                return;
+            }
             try {
                 JSONObject jObj = new JSONObject(result);
                 String status = jObj.optString("state");
@@ -175,7 +188,6 @@ public class LoginActivity extends AppCompatActivity {
                                     loadingView.setVisibility(View.GONE);
                                 }
                             });
-//                    loadingView.setVisibility(View.GONE);
                     toast("Login failed and try again.");
                 }
 
