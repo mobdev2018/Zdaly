@@ -148,7 +148,7 @@ public class WeatherDetailActivity extends AppCompatActivity {
 
                 JSONArray hourlyArr = weekWeatherDict.optJSONArray("hourly");
                 JSONObject hourDict = hourlyArr.getJSONObject(0);
-                JSONArray weatherIconUrlArr = hourDict.optJSONArray("weahterIconUrl");
+                JSONArray weatherIconUrlArr = hourDict.optJSONArray("weatherIconUrl");
                 JSONObject weatherIconUrlDict = weatherIconUrlArr.getJSONObject(0);
 
                 String weatherIconUrl = weatherIconUrlDict.optString("value", "");
