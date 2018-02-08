@@ -31,4 +31,5 @@ dependencies {
     annotationProcessor "com.jakewharton:butterknife-compiler:8.5.1"
 
     compile 'com.squareup.okhttp3:okhttp:3.9.1'
+    implementation 'com.google.android.gms:play-services-maps:11.8.0'
 }

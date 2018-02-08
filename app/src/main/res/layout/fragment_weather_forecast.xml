@@ -31,7 +31,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="4dp"
                     android:layout_alignParentBottom="true"
-                    android:background="@color/red"/>
+                    android:background="@color/red"
+                    android:orientation="horizontal"/>
             </RelativeLayout>
 
             <RelativeLayout
@@ -54,7 +55,8 @@
                     android:layout_height="4dp"
                     android:layout_alignParentBottom="true"
                     android:background="@color/red"
-                    android:visibility="gone"/>
+                    android:visibility="gone"
+                    android:orientation="horizontal"/>
             </RelativeLayout>
 
         </LinearLayout>
@@ -68,13 +70,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <RelativeLayout
+            <com.google.android.gms.maps.MapView
                 android:id="@+id/mapView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/white"
-                android:visibility="gone">
-            </RelativeLayout>
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/btnSwitch"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/switchs"
+                android:visibility="gone"/>
 
         </RelativeLayout>
 

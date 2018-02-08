@@ -3,10 +3,20 @@ package mayah.zdalyapp.zdaly.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +27,29 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.Annotation;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,7 +62,7 @@ import mayah.zdalyapp.zdaly.util.Constant;
 import mayah.zdalyapp.zdaly.util.SetImageFromURL;
 import mayah.zdalyapp.zdaly.util.Util;
 
-public class WeatherForecastFragment extends Fragment {
+public class WeatherForecastFragment extends Fragment{
 
     @BindView(R.id.btnCity)
     Button btnCity;
@@ -45,7 +75,12 @@ public class WeatherForecastFragment extends Fragment {
     @BindView(R.id.listView)
     ListView listView;
     @BindView(R.id.mapView)
-    View mapView;
+    com.google.android.gms.maps.MapView mapView;
+    @BindView(R.id.btnSwitch)
+    Button btnSwitch;
+
+
+    private GoogleMap mMap;
 
     String userid;
     JSONArray weatherArr;
@@ -83,7 +118,41 @@ public class WeatherForecastFragment extends Fragment {
         ((MainActivity)getActivity()).showLoadingDialog("Getting weather list..");
         (new GetWeatherForecast()).execute();
 
+
+        mapView.onCreate(savedInstanceState);
+        mapView.onResume();
+
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
     }
 
     @OnClick(R.id.btnCity)
@@ -94,7 +163,7 @@ public class WeatherForecastFragment extends Fragment {
         btnCity.setTextColor(ContextCompat.getColor(getContext(), R.color.red));
         cityUnderline.setVisibility(View.VISIBLE);
 
-
+        btnSwitch.setVisibility(View.GONE);
         listView.setVisibility(View.VISIBLE);
         mapView.setVisibility(View.GONE);
         listAdapter.notifyDataSetChanged();
@@ -108,9 +177,24 @@ public class WeatherForecastFragment extends Fragment {
         btnOcean.setTextColor(ContextCompat.getColor(getContext(), R.color.red));
         oceanUnderline.setVisibility(View.VISIBLE);
 
-        listView.setVisibility(View.VISIBLE);
-        mapView.setVisibility(View.GONE);
+        btnSwitch.setVisibility(View.VISIBLE);
+        listView.setVisibility(View.GONE);
+        mapView.setVisibility(View.VISIBLE);
         listAdapter.notifyDataSetChanged();
+    }
+
+    @OnClick(R.id.btnSwitch)
+    public void onSwitch() {
+        if (oceanViewType == 0) {
+            listView.setVisibility(View.VISIBLE);
+            mapView.setVisibility(View.GONE);
+            listAdapter.notifyDataSetChanged();
+            oceanViewType = 1;
+        } else {
+            oceanViewType = 0;
+            listView.setVisibility(View.GONE);
+            mapView.setVisibility(View.VISIBLE);
+        }
 
     }
 
@@ -149,7 +233,7 @@ public class WeatherForecastFragment extends Fragment {
                 weatherArr = resultDic.getJSONArray("weather");
                 marineArr = resultDic.getJSONArray("marine");
 
-//                updateMap();
+                updateMap();
 
                 listAdapter = new WeatherForecastAdapter(getActivity());
                 listView.setAdapter(listAdapter);
@@ -158,6 +242,107 @@ public class WeatherForecastFragment extends Fragment {
                 toast("Sorry! No data found.");
             }
         }
+    }
+
+    private void updateMap() {
+        try {
+            JSONObject firstMarineDict = marineArr.getJSONObject(0);
+            final double lat = firstMarineDict.optDouble("lat", 0.0);
+            final double lon = firstMarineDict.optDouble("lon", 0.0);
+
+            mapView.getMapAsync(new OnMapReadyCallback() {
+                @Override
+                public void onMapReady(GoogleMap googleMap) {
+                    mMap = googleMap;
+
+                    LatLng coordinate = new LatLng(lat, lon);
+                    // For zooming automatically to the location of the marker
+                    CameraPosition cameraPosition = new CameraPosition.Builder().target(coordinate).zoom(3).build();
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                    mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                        @Override
+                        public boolean onMarkerClick(Marker marker) {
+                            try {
+                                int index = Integer.parseInt(marker.getTitle());
+                                JSONObject weatherDict = annotArr.getJSONObject(index);
+
+                                MarineDetailActivity.oceanDict = weatherDict;
+                                Intent intent = new Intent(getActivity(), MarineDetailActivity.class);
+                                startActivity(intent);
+
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            return true;
+                        }
+                    });
+                    addAnnotations();
+                }
+            });
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addAnnotations () {
+        annotArr = new JSONArray();
+        try {
+            for (int i = 0; i < marineArr.length(); i++) {
+                JSONObject weatherDict = marineArr.getJSONObject(i);
+                double lat = weatherDict.optDouble("lat", 0.0);
+                double lon = weatherDict.optDouble("lon", 0.0);
+                String title = weatherDict.optString("name", "");
+                String subtitle = String.format("%d", i);
+
+                LatLng coordinate = new LatLng(lat, lon);
+                Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+                Bitmap bmp = Bitmap.createBitmap(200, 220, conf);
+                Canvas canvas = new Canvas(bmp);
+
+                if (title != null) {
+                    if (i == selectedOceanIndex) {
+                        canvas.drawBitmap(BitmapFactory.decodeResource(getResources(),
+                                R.drawable.red_pin_select), null, new RectF(40, 0, 160, 120), null);
+                    } else  {
+                        canvas.drawBitmap(BitmapFactory.decodeResource(getResources(),
+                                R.drawable.red_pin),null, new RectF(40, 0, 160, 120), null);
+                    }
+                }
+
+                if (title.equals("yellow")) {
+                    if (i == selectedOceanIndex) {
+                        canvas.drawBitmap(BitmapFactory.decodeResource(getResources(),
+                                R.drawable.yellow_pin_select),null, new RectF(40, 0, 160, 120), null);
+                    } else {
+                        canvas.drawBitmap(BitmapFactory.decodeResource(getResources(),
+                                R.drawable.yellow_pin),null, new RectF(40, 0, 160, 120), null);
+                    }
+                }
+
+                TextPaint textPaint=new TextPaint();
+                textPaint.setColor(Color.BLACK);
+                textPaint.setTextSize(30);
+                StaticLayout textLayout = new StaticLayout(title + " " + subtitle, textPaint, canvas.getWidth(), Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+                canvas.save();
+
+                canvas.translate(0, 120);
+                textLayout.draw(canvas);
+                canvas.restore();
+
+                MarkerOptions marker = new MarkerOptions();
+                marker.position(coordinate);
+                marker.icon(BitmapDescriptorFactory.fromBitmap(bmp));
+                marker.title(subtitle);
+                mMap.addMarker(marker);
+                annotArr.put(weatherDict);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
 
