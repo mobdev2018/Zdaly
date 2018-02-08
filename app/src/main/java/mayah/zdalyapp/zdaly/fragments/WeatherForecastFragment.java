@@ -88,10 +88,12 @@ public class WeatherForecastFragment extends Fragment {
 
     @OnClick(R.id.btnCity)
     public void onCity() {
+        tabIndex = 0;
         btnOcean.setTextColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
         oceanUnderline.setVisibility(View.GONE);
         btnCity.setTextColor(ContextCompat.getColor(getContext(), R.color.red));
         cityUnderline.setVisibility(View.VISIBLE);
+
 
         listView.setVisibility(View.VISIBLE);
         mapView.setVisibility(View.GONE);
@@ -100,13 +102,16 @@ public class WeatherForecastFragment extends Fragment {
 
     @OnClick(R.id.btnOcean)
     public void onOcean() {
+        tabIndex = 1;
         btnCity.setTextColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
         cityUnderline.setVisibility(View.GONE);
         btnOcean.setTextColor(ContextCompat.getColor(getContext(), R.color.red));
         oceanUnderline.setVisibility(View.VISIBLE);
 
-        listView.setVisibility(View.GONE);
-        mapView.setVisibility(View.VISIBLE);
+        listView.setVisibility(View.VISIBLE);
+        mapView.setVisibility(View.GONE);
+        listAdapter.notifyDataSetChanged();
+
     }
 
 
@@ -195,13 +200,13 @@ public class WeatherForecastFragment extends Fragment {
                 WeatherViewHolder holder = new WeatherViewHolder(view);
 
                 try {
-                    JSONObject weatherDict = weatherArr.getJSONObject(position);
+                    final JSONObject weatherDict = weatherArr.getJSONObject(position);
                     holder.setWeatherDict(weatherDict);
 
-                    view.setOnClickListener(new CustomClickListener(weatherDict) {
+                    view.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            WeatherDetailActivity.weatherDict = jObj;
+                            WeatherDetailActivity.weatherDict = weatherDict;
                             Intent intent = new Intent(getActivity(), WeatherDetailActivity.class);
                             startActivity(intent);
                         }
@@ -215,13 +220,13 @@ public class WeatherForecastFragment extends Fragment {
                 OceanViewHolder holder = new OceanViewHolder(view);
 
                 try {
-                    JSONObject marineDict = marineArr.getJSONObject(position);
+                    final JSONObject marineDict = marineArr.getJSONObject(position);
                     holder.setOceanDict(marineDict);
 
-                    view.setOnClickListener(new CustomClickListener(marineDict) {
+                    view.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            MarineDetailActivity.oceanDict = jObj;
+                            MarineDetailActivity.oceanDict = marineDict;
                             Intent intent = new Intent(getActivity(), MarineDetailActivity.class);
                             startActivity(intent);
                         }
@@ -310,22 +315,6 @@ public class WeatherForecastFragment extends Fragment {
             txtLongitude.setText(String.format("%.2f", longitude));
         }
     }
-
-    class CustomClickListener implements View.OnClickListener {
-
-        JSONObject jObj;
-
-        public CustomClickListener(JSONObject object) {
-            super();
-            jObj = object;
-        }
-
-        @Override
-        public void onClick(View v) {
-
-        }
-    }
-
 
     private void toast(CharSequence text) {
         Toast.makeText(getActivity(), text, Toast.LENGTH_SHORT).show();

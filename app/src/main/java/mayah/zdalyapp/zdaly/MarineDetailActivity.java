@@ -123,7 +123,8 @@ public class MarineDetailActivity extends AppCompatActivity {
 
             marineArr = weatherArr;
 
-
+            MarineDetailAdapter listAdapter = new MarineDetailAdapter(getApplicationContext());
+            listView.setAdapter(listAdapter);
 
         } catch (Exception e) {
             e.printStackTrace();
