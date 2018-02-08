@@ -26,7 +26,8 @@
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".WeatherDetailActivity"></activity>
+        <activity android:name=".WeatherDetailActivity" />
+        <activity android:name=".MarineDetailActivity"></activity>
     </application>
 
 </manifest>

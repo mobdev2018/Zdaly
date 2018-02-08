@@ -157,8 +157,8 @@ public class WeatherDetailActivity extends AppCompatActivity {
                 JSONObject weatherDescDict = weatherDescArr.getJSONObject(0);
                 String weatherDesc = weatherDescDict.optString("value", "");
 
-                new SetImageFromURL(imgWeather, weatherIconUrl).execute();
-                txtCondition.setText(weatherDesc);
+                new SetImageFromURL(holder.imgWeather, weatherIconUrl).execute();
+                holder.txtCondition.setText(weatherDesc);
 
             } catch (JSONException e) {
                 e.printStackTrace();

@@ -25,6 +25,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import mayah.zdalyapp.zdaly.MainActivity;
+import mayah.zdalyapp.zdaly.MarineDetailActivity;
 import mayah.zdalyapp.zdaly.R;
 import mayah.zdalyapp.zdaly.WeatherDetailActivity;
 import mayah.zdalyapp.zdaly.util.Constant;
@@ -220,7 +221,9 @@ public class WeatherForecastFragment extends Fragment {
                     view.setOnClickListener(new CustomClickListener(marineDict) {
                         @Override
                         public void onClick(View v) {
-
+                            MarineDetailActivity.oceanDict = jObj;
+                            Intent intent = new Intent(getActivity(), MarineDetailActivity.class);
+                            startActivity(intent);
                         }
                     });
                 } catch (JSONException e) {
