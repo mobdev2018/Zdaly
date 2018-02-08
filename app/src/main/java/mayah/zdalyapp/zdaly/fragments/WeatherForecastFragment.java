@@ -1,6 +1,7 @@
 package mayah.zdalyapp.zdaly.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import mayah.zdalyapp.zdaly.MainActivity;
 import mayah.zdalyapp.zdaly.R;
+import mayah.zdalyapp.zdaly.WeatherDetailActivity;
 import mayah.zdalyapp.zdaly.util.Constant;
 import mayah.zdalyapp.zdaly.util.SetImageFromURL;
 import mayah.zdalyapp.zdaly.util.Util;
@@ -194,6 +196,15 @@ public class WeatherForecastFragment extends Fragment {
                 try {
                     JSONObject weatherDict = weatherArr.getJSONObject(position);
                     holder.setWeatherDict(weatherDict);
+
+                    view.setOnClickListener(new CustomClickListener(weatherDict) {
+                        @Override
+                        public void onClick(View v) {
+                            WeatherDetailActivity.weatherDict = jObj;
+                            Intent intent = new Intent(getActivity(), WeatherDetailActivity.class);
+                            startActivity(intent);
+                        }
+                    });
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -205,6 +216,13 @@ public class WeatherForecastFragment extends Fragment {
                 try {
                     JSONObject marineDict = marineArr.getJSONObject(position);
                     holder.setOceanDict(marineDict);
+
+                    view.setOnClickListener(new CustomClickListener(marineDict) {
+                        @Override
+                        public void onClick(View v) {
+
+                        }
+                    });
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -289,6 +307,22 @@ public class WeatherForecastFragment extends Fragment {
             txtLongitude.setText(String.format("%.2f", longitude));
         }
     }
+
+    class CustomClickListener implements View.OnClickListener {
+
+        JSONObject jObj;
+
+        public CustomClickListener(JSONObject object) {
+            super();
+            jObj = object;
+        }
+
+        @Override
+        public void onClick(View v) {
+
+        }
+    }
+
 
     private void toast(CharSequence text) {
         Toast.makeText(getActivity(), text, Toast.LENGTH_SHORT).show();
