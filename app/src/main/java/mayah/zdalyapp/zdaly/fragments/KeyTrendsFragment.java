@@ -1,6 +1,7 @@
 package mayah.zdalyapp.zdaly.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -8,13 +9,20 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.text.Layout;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -27,7 +35,9 @@ import java.util.zip.Inflater;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import mayah.zdalyapp.zdaly.MainActivity;
+import mayah.zdalyapp.zdaly.MarineDetailActivity;
 import mayah.zdalyapp.zdaly.R;
+import mayah.zdalyapp.zdaly.WeatherDetailActivity;
 import mayah.zdalyapp.zdaly.util.Constant;
 import mayah.zdalyapp.zdaly.util.Util;
 
@@ -47,6 +57,8 @@ public class KeyTrendsFragment extends Fragment {
     ArrayList<String> headerTitleArr;
     ArrayList<View> headerButtonsArr;
     JSONObject headerWithDataDict;
+
+    KeyTrendsListAdapter listAdapter;
 
     public static ArrayList<String> graphColorArr = new ArrayList<String>();
 
@@ -69,7 +81,6 @@ public class KeyTrendsFragment extends Fragment {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Constant.SHARED_PR.SHARE_PREF, Context.MODE_PRIVATE);
         userid = sharedPreferences.getString(Constant.SHARED_PR.KEY_ID, "");
 
-        tabIndex = 0;
         getEachTabGraphInfo();
 
         return view;
@@ -119,7 +130,7 @@ public class KeyTrendsFragment extends Fragment {
 
             try {
                 JSONArray graphArr = new JSONArray(result);
-                if (graphArr==null) return;
+                if (graphArr == null) return;
 
                 for (int i = 0; i < graphArr.length(); i++) {
                     JSONObject graphDict = graphArr.getJSONObject(i);
@@ -162,8 +173,6 @@ public class KeyTrendsFragment extends Fragment {
                 if (maxColorCnt > graphColorArr.size()) {
                     addColorsToGraphColorArr(maxColorCnt - graphColorArr.size());
                 }
-
-//                listView.setAdapter();
 
             } catch (JSONException e) {
                 toast("Sorry! No data found.");
@@ -217,15 +226,15 @@ public class KeyTrendsFragment extends Fragment {
             headerButtonsArr.add(barButton);
             headerView.addView(barButton);
         }
+
+        setTabIndex(0);
     }
 
     public void setTabIndex(int index) {
         tabIndex = index;
+        listAdapter = new KeyTrendsListAdapter(getContext());
+        listView.setAdapter(listAdapter);
     }
-
-
-
-
 
     public void addColorsToGraphColorArr(int count) {
         for (int i = 0; i < count; i++) {
@@ -244,19 +253,198 @@ public class KeyTrendsFragment extends Fragment {
         Toast.makeText(getActivity(), text, Toast.LENGTH_SHORT).show();
     }
 
-    private boolean containsObject(JSONArray arr, JSONObject obj) {
-        try {
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject tmp = arr.getJSONObject(i);
-                if (tmp.equals(obj)) {
-                    return true;
-                }
+    class KeyTrendsListAdapter extends BaseAdapter {
+        private Context mContext;
+        private LayoutInflater inflater = null;
+        JSONArray graphArr;
+
+        public KeyTrendsListAdapter(Context context) {
+            this.mContext = context;
+            inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            graphArr = new JSONArray();
+            try {
+                graphArr = headerWithDataDict.getJSONArray(headerTitleArr.get(tabIndex));
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
 
-        return false;
+        @Override
+        public int getCount() {
+            return graphArr.length();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View view, ViewGroup viewGroup) {
+
+            view = inflater.inflate(R.layout.row_key_trends, null);
+            ViewHolder holder = new ViewHolder(view);
+
+            try {
+                JSONObject graphDict = graphArr.getJSONObject(position);
+                holder.setGraphDict(graphDict);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return view;
+        }
+    }
+
+    class ViewHolder {
+
+        @BindView(R.id.txtTitle)
+        TextView txtTitle;
+        @BindView(R.id.descView)
+        LinearLayout descView;
+
+
+        public ViewHolder(View view) {
+            ButterKnife.bind(this, view);
+        }
+
+        public void setGraphDict(JSONObject graphDict) {
+
+            int barWidth = 20;
+            int barSpace = 4;
+            int barGroupSpace = 16;
+            int startOffset = 64;
+            int yAxisHeight = 138-2;
+            int columnCnt = 0;
+
+            try {
+                boolean isStack = graphDict.optBoolean("isStack", false);
+
+                txtTitle.setText(graphDict.optString("title", ""));
+
+                JSONArray configurationArr = graphDict.getJSONArray("configuration");
+
+                float minYAxis;
+                float maxYAxis;
+
+                ArrayList yAxisStrArr = new ArrayList();
+
+                //========================================================
+                //=========   Configure Description Section    ===========
+                //========================================================
+
+                //--------- Calculate max width of bar description label and column count --------
+
+                for (int i = 0; i < configurationArr.length(); i++) {
+                    JSONObject configurationDict = configurationArr.getJSONObject(i);
+                    String title = configurationDict.optString("title", "");
+
+
+                    String type = configurationDict.optString("type", "");
+                    if (type.equals("column")) {
+                        columnCnt++;
+                    }
+                }
+
+                if (isStack) columnCnt = 1;
+
+                for (int i = 0; i < configurationArr.length(); i++) {
+                    JSONObject configurationDict = configurationArr.getJSONObject(i);
+                    String title = configurationDict.optString("title", "");
+                    String type = configurationDict.optString("type", "");
+
+                    int fillColor;
+                    String fillColorString = configurationDict.optString("fillColor", null);
+
+                    if (fillColorString == null) {
+                        fillColor = Integer.parseInt(graphColorArr.get(i));
+                    } else {
+                        Log.e("========", fillColorString);
+                        fillColor = Color.parseColor(fillColorString);
+                    }
+
+                    int lineColor;
+                    String lineColorString = configurationDict.optString("lineColor", null);
+                    if (lineColorString == null) {
+                        lineColor = Integer.parseInt(graphColorArr.get(i));
+                    } else {
+                        lineColor = Color.parseColor(lineColorString);
+                    }
+
+                    LinearLayout barDescGroup;
+                    int tag = i / 2;
+                    if ((i % 2) == 0) {
+                        barDescGroup = new LinearLayout(getContext());
+                        barDescGroup.setOrientation(LinearLayout.VERTICAL);
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        layoutParams.rightMargin = 24;
+                        barDescGroup.setLayoutParams(layoutParams);
+                        barDescGroup.setTag(tag);
+                        descView.addView(barDescGroup);
+
+                    } else {
+                        barDescGroup = (LinearLayout)descView.findViewWithTag(tag);
+                    }
+
+                    LinearLayout.LayoutParams barDescViewParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    barDescViewParams.setMargins(0, 2, 0, 2);
+                    LinearLayout barDescView = new LinearLayout(getContext());
+                    barDescView.setOrientation(LinearLayout.HORIZONTAL);
+                    barDescView.setLayoutParams(barDescViewParams);
+                    barDescView.setGravity(Gravity.CENTER_VERTICAL);
+
+                    if (type.equals("column")) {
+                        LinearLayout.LayoutParams columnParams = new LinearLayout.LayoutParams(100, 40);
+                        columnParams.rightMargin = 8;
+                        View columnView = new View(getContext());
+                        columnView.setLayoutParams(columnParams);
+                        columnView.setBackgroundColor(fillColor);
+
+                        barDescView.addView(columnView);
+
+                    } else {
+                        RelativeLayout.LayoutParams lineViewParams = new RelativeLayout.LayoutParams(100, 40);
+                        RelativeLayout lineView = new RelativeLayout(getContext());
+                        lineView.setLayoutParams(lineViewParams);
+
+                        RelativeLayout.LayoutParams lineParams = new RelativeLayout.LayoutParams(100, 3);
+                        lineParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+                        LinearLayout line = new LinearLayout(getContext());
+                        line.setLayoutParams(lineParams);
+                        line.setBackgroundColor(lineColor);
+                        lineView.addView(line);
+
+                        RelativeLayout.LayoutParams circleParam = new RelativeLayout.LayoutParams(20, 20);
+                        circleParam.addRule(RelativeLayout.CENTER_IN_PARENT);
+                        TextView dot = new TextView(getContext());
+                        dot.setLayoutParams(circleParam);
+                        dot.setBackgroundColor(lineColor);
+                        dot.setBackground(Util.drawCircle(getContext(), 20, 20, lineColor));
+                        lineView.addView(dot);
+                        barDescView.addView(lineView);
+                    }
+
+                    LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    TextView txtDesc = new TextView(getContext());
+                    txtDesc.setLayoutParams(descParams);
+                    txtDesc.setTextColor(ContextCompat.getColor(getContext(), R.color.darkGray));
+                    txtDesc.setTextSize(16);
+                    txtDesc.setText(title);
+
+                    barDescView.addView(txtDesc);
+                    barDescGroup.addView(barDescView);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

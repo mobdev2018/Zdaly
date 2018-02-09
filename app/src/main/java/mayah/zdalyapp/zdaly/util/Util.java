@@ -7,6 +7,8 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -151,6 +153,17 @@ public class Util {
         String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(),
                 inImage, "Title", null);
         return Uri.parse(path);
+    }
+
+    public static ShapeDrawable drawCircle (Context context, int width, int height, int color) {
+
+        //////Drawing oval & Circle programmatically /////////////
+
+        ShapeDrawable oval = new ShapeDrawable (new OvalShape());
+        oval.setIntrinsicHeight (height);
+        oval.setIntrinsicWidth (width);
+        oval.getPaint ().setColor (color);
+        return oval;
     }
 
 }
