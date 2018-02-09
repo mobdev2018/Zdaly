@@ -21,6 +21,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import mayah.zdalyapp.zdaly.fragments.DailyNewsFragment;
 import mayah.zdalyapp.zdaly.fragments.DailyNewsWebViewFragment;
+import mayah.zdalyapp.zdaly.fragments.KeyTrendsFragment;
 import mayah.zdalyapp.zdaly.fragments.SpotPricesFragment;
 import mayah.zdalyapp.zdaly.fragments.WeatherForecastFragment;
 
@@ -53,7 +54,7 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        selectedIndex = 1;
+        selectedIndex = 2;
         displayView(selectedIndex);
     }
 
@@ -64,6 +65,7 @@ public class MainActivity extends FragmentActivity {
                 fragment = DailyNewsFragment.newInstance();
                 break;
             case 2:
+                fragment = KeyTrendsFragment.newInstance();
                 break;
             case 3:
                 fragment = SpotPricesFragment.newInstance();
