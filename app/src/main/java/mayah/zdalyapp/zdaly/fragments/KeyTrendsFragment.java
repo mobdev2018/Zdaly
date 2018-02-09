@@ -360,7 +360,7 @@ public class KeyTrendsFragment extends Fragment {
                     String type = configurationDict.optString("type", "");
 
                     int fillColor;
-                    String fillColorString = configurationDict.optString("fillColor", null);
+                    String fillColorString = configurationDict.optString("fillColors", null);
 
                     if (fillColorString == null) {
                         fillColor = Integer.parseInt(graphColorArr.get(i));
