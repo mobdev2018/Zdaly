@@ -89,20 +89,18 @@
 
                 <HorizontalScrollView
                     android:id="@+id/scrollView"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="200dp">
 
-                    <RelativeLayout
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="200dp">
+                        android:layout_height="wrap_content">
+                        <ImageView
+                            android:id="@+id/imgGraph"
+                            android:layout_width="wrap_content"
+                            android:layout_height="200dp"/>
+                    </LinearLayout>
 
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="2dp"
-                            android:layout_alignParentBottom="true"
-                            android:layout_marginBottom="62dp"
-                            android:background="@color/darkGray"/>
-                    </RelativeLayout>
                 </HorizontalScrollView>
 
             </RelativeLayout>

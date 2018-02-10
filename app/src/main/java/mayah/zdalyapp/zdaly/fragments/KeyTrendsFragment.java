@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -42,6 +43,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Console;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.zip.Inflater;
 
@@ -329,6 +331,8 @@ public class KeyTrendsFragment extends Fragment {
         ImageView yAxisView;
         @BindView(R.id.xBaseView)
         ImageView xBaseView;
+        @BindView(R.id.imgGraph)
+        ImageView imgGraph;
 
         JSONObject graphDict;
         JSONArray configurationArr;
@@ -347,13 +351,6 @@ public class KeyTrendsFragment extends Fragment {
             this.graphDict = graphDict;
             showHeaderView();
             showGraph();
-//            ViewTreeObserver vto = xBaseView.getViewTreeObserver();
-//            vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-//                @Override
-//                public void onGlobalLayout() {
-//                    showGraph();
-//                }
-//            });
         }
 
         public void showHeaderView() {
@@ -368,7 +365,6 @@ public class KeyTrendsFragment extends Fragment {
                 //========================================================
                 //=========   Configure Description Section    ===========
                 //========================================================
-
 
                 //--------- Calculate max width of bar description label and column count --------
                 for (int i = 0; i < configurationArr.length(); i++) {
@@ -477,7 +473,7 @@ public class KeyTrendsFragment extends Fragment {
             int barWidth = 20;
             int barSpace = 4;
             int barGroupSpace = 16;
-            int startOffset = 64;
+            int startOffset = 16;
             int yAxisHeight = 138-2;
 
             float minYAxis;
@@ -490,7 +486,7 @@ public class KeyTrendsFragment extends Fragment {
                 //==================   Draw Bar Graph    =================
                 //========================================================
 
-                float barGraphWidth = columnCnt * (barWidth + barSpace);
+                float barGroupWidth = columnCnt * (barWidth + barSpace);
                 if (columnCnt == 0) {
                     barGroupSpace = barGroupSpace + barWidth;
                 }
@@ -507,9 +503,6 @@ public class KeyTrendsFragment extends Fragment {
                         maxValDict = value;
                     }
                 }
-
-                Log.e("maxValDict========", String.valueOf(maxValDict.optInt("Total")));
-
 
                 float eachValHeight;
                 float maxBarVal = 0;
@@ -540,7 +533,6 @@ public class KeyTrendsFragment extends Fragment {
 
                     float maxBarValue = (float) maxValDict.optDouble("Total", 0);
                     maxYAxis = ((maxBarValue - minYAxis) > 5) ? maxBarValue : (maxBarValue + (maxBarValue * 2) / 100);
-                    Log.e("maxYAxis =======", String.valueOf(maxYAxis));
 
                 } else {
 
@@ -602,13 +594,11 @@ public class KeyTrendsFragment extends Fragment {
                 if (maxBarVal != 0) {
                     eachValHeight = yAxisHeight / (maxYAxis - minYAxis);
 
-
                     //========================================================
                     //=============   Configure y Axis View  =================
                     //========================================================
 
                     float yAxisUnitHeight = yAxisHeight / (yAxisStrArr.size() - 1);
-                    Log.e("length=========", String.valueOf(yAxisStrArr.size()));
 
                     Bitmap bitmapYAxis = Bitmap.createBitmap(
                             48, // Width
@@ -618,9 +608,8 @@ public class KeyTrendsFragment extends Fragment {
 
                     DisplayMetrics displayMetrics = new DisplayMetrics();
                     getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//                    int screenHeight = displayMetrics.heightPixels;
-                    int screenWidth = displayMetrics.widthPixels;
 
+                    int screenWidth = displayMetrics.widthPixels;
                     int xBaseViewWidth = (int)convertPixelsToDp(screenWidth) - 16 -48;
 
                     Bitmap bitmapXBase = Bitmap.createBitmap(
@@ -636,7 +625,6 @@ public class KeyTrendsFragment extends Fragment {
                     Paint paint = new Paint();
                     paint.setColor(Color.BLACK);
                     paint.setStyle(Paint.Style.FILL);
-
 
 
                     for (int i = 0; i < yAxisStrArr.size(); i++) {
@@ -664,14 +652,104 @@ public class KeyTrendsFragment extends Fragment {
                         }
                     }
 
-
                     yAxisView.setImageBitmap(bitmapYAxis);
                     xBaseView.setImageBitmap(bitmapXBase);
 
 
 
+                    //========================================================
+                    //=============   Draw Bar & Line Graph  =================
+                    //========================================================
+
+                    int scrollWidth = (int)(startOffset + (barGroupSpace + barGroupWidth) * values.length());
+                    int scrollHeight = imgGraph.getLayoutParams().height;
+                    scrollWidth = scrollWidth * scrollHeight / 200;
+                    Log.e("============", String.format("%d, %d", scrollWidth, scrollHeight));
+                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(scrollWidth, imgGraph.getLayoutParams().height);
+                    imgGraph.setLayoutParams(layoutParams);
+
+                    Bitmap bitmapGraph = Bitmap.createBitmap(
+                            scrollWidth * 200 / scrollHeight, // Width
+                            200, // Height
+                            Bitmap.Config.ARGB_8888 // Config
+                    );
+                    Canvas canvasGraph = new Canvas(bitmapGraph);
+
+                    ArrayList<Float> prevValSumArr = new ArrayList<Float>();
+                    for (int i = 0; i < values.length(); i++) {
+                        prevValSumArr.add(new Float(0));
+                    }
+                    int columnIndex = 0;
+                    for (int i = 0; i < configurationArr.length(); i++) {
+                        JSONObject configurationDict = configurationArr.getJSONObject(i);
+                        String title = configurationDict.optString("title", "");
+                        String type = configurationDict.optString("type",  "");
+                        double lineAlpha = configurationDict.optDouble("lineAlpha", 0);
+                        double fillAlpha = configurationDict.optDouble("fillAlphas", 0);
+
+                        int fillColor;
+                        String fillColorString = configurationDict.optString("fillColors", null);
+
+                        if (fillColorString == null) {
+                            fillColor = Integer.parseInt(graphColorArr.get(i));
+                        } else {
+                            fillColor = Color.parseColor(fillColorString);
+                        }
+
+                        int lineColor;
+                        String lineColorString = configurationDict.optString("lineColor", null);
+                        if (lineColorString == null) {
+                            lineColor = Integer.parseInt(graphColorArr.get(i));
+                        } else {
+                            lineColor = Color.parseColor(lineColorString);
+                        }
+
+                        if (type.equals("column")) {
+                            if (isStack) {
+                                for (int j = 0; j < values.length(); j++) {
+                                    JSONObject barGroupDict = values.getJSONObject(j);
+                                    float barVal = (float)barGroupDict.optDouble(title, 0);
+
+                                    float sumVal = prevValSumArr.get(j);
+                                    sumVal += barVal;
+                                    prevValSumArr.set(j, new Float(sumVal));
+
+                                    paint.setColor(fillColor);
+//                                    paint.setAlpha((int)(fillAlpha * 100));
+                                    float left = startOffset + j * (barGroupWidth + barGroupSpace);
+                                    float top = yAxisHeight - sumVal * eachValHeight;
+                                    float right = left + barWidth;
+                                    float bottom = top + barVal * eachValHeight;
+
+                                    canvasGraph.drawRect(left, top, right, bottom, paint);
+                                }
+                            } else {
+                                for (int j = 0; j < values.length(); j++) {
+                                    JSONObject barGroupDict = values.getJSONObject(j);
+                                    float barVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
+
+                                    if (barVal < 0) {
+                                        barVal = 0;
+                                    }
+
+                                    paint.setColor(fillColor);
+//                                    paint.setAlpha((int)(fillAlpha * 100));
+                                    float left = startOffset + columnIndex * (barWidth + barSpace) + j * (barGroupWidth + barGroupSpace);
+                                    float top = yAxisHeight - barVal * eachValHeight;
+                                    float right = left + barWidth;
+                                    float bottom = top + barVal * eachValHeight;
+                                    
+                                    canvasGraph.drawRect(left, top, right, bottom, paint);
+                                }
+                                columnIndex ++;
+                            }
+                        }
+                    }
+
+                    imgGraph.setImageBitmap(bitmapGraph);
 
                 }
+
             } catch (Exception e) {
 
             }
