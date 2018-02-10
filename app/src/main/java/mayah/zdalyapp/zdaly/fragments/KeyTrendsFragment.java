@@ -3,21 +3,33 @@ package mayah.zdalyapp.zdaly.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -29,6 +41,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.zip.Inflater;
 
@@ -288,10 +301,11 @@ public class KeyTrendsFragment extends Fragment {
         public View getView(int position, View view, ViewGroup viewGroup) {
 
             view = inflater.inflate(R.layout.row_key_trends, null);
-            ViewHolder holder = new ViewHolder(view);
+            final ViewHolder holder = new ViewHolder(view);
 
             try {
-                JSONObject graphDict = graphArr.getJSONObject(position);
+                final JSONObject graphDict = graphArr.getJSONObject(position);
+
                 holder.setGraphDict(graphDict);
 
             } catch (JSONException e) {
@@ -308,44 +322,57 @@ public class KeyTrendsFragment extends Fragment {
         TextView txtTitle;
         @BindView(R.id.descView)
         LinearLayout descView;
+        @BindView(R.id.graphView)
+        View graphView;
 
+        @BindView(R.id.yAxisView)
+        ImageView yAxisView;
+        @BindView(R.id.xBaseView)
+        ImageView xBaseView;
+
+        JSONObject graphDict;
+        JSONArray configurationArr;
+        int columnCnt = 0;
+        boolean isStack = false;
 
         public ViewHolder(View view) {
             ButterKnife.bind(this, view);
+
+            graphDict = new JSONObject();
+            configurationArr = new JSONArray();
         }
 
-        public void setGraphDict(JSONObject graphDict) {
+        public void setGraphDict(JSONObject graphDict)  {
 
-            int barWidth = 20;
-            int barSpace = 4;
-            int barGroupSpace = 16;
-            int startOffset = 64;
-            int yAxisHeight = 138-2;
-            int columnCnt = 0;
+            this.graphDict = graphDict;
+            showHeaderView();
+            showGraph();
+//            ViewTreeObserver vto = xBaseView.getViewTreeObserver();
+//            vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+//                @Override
+//                public void onGlobalLayout() {
+//                    showGraph();
+//                }
+//            });
+        }
+
+        public void showHeaderView() {
 
             try {
-                boolean isStack = graphDict.optBoolean("isStack", false);
+                isStack = graphDict.optBoolean("isStack", false);
 
                 txtTitle.setText(graphDict.optString("title", ""));
 
-                JSONArray configurationArr = graphDict.getJSONArray("configuration");
-
-                float minYAxis;
-                float maxYAxis;
-
-                ArrayList yAxisStrArr = new ArrayList();
+                configurationArr = graphDict.getJSONArray("configuration");
 
                 //========================================================
                 //=========   Configure Description Section    ===========
                 //========================================================
 
-                //--------- Calculate max width of bar description label and column count --------
 
+                //--------- Calculate max width of bar description label and column count --------
                 for (int i = 0; i < configurationArr.length(); i++) {
                     JSONObject configurationDict = configurationArr.getJSONObject(i);
-                    String title = configurationDict.optString("title", "");
-
-
                     String type = configurationDict.optString("type", "");
                     if (type.equals("column")) {
                         columnCnt++;
@@ -365,7 +392,6 @@ public class KeyTrendsFragment extends Fragment {
                     if (fillColorString == null) {
                         fillColor = Integer.parseInt(graphColorArr.get(i));
                     } else {
-                        Log.e("========", fillColorString);
                         fillColor = Color.parseColor(fillColorString);
                     }
 
@@ -383,7 +409,7 @@ public class KeyTrendsFragment extends Fragment {
                         barDescGroup = new LinearLayout(getContext());
                         barDescGroup.setOrientation(LinearLayout.VERTICAL);
                         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                        layoutParams.rightMargin = 24;
+                        layoutParams.setMargins(0, 0, 30, 0);
                         barDescGroup.setLayoutParams(layoutParams);
                         barDescGroup.setTag(tag);
                         descView.addView(barDescGroup);
@@ -434,7 +460,7 @@ public class KeyTrendsFragment extends Fragment {
                     TextView txtDesc = new TextView(getContext());
                     txtDesc.setLayoutParams(descParams);
                     txtDesc.setTextColor(ContextCompat.getColor(getContext(), R.color.darkGray));
-                    txtDesc.setTextSize(16);
+                    txtDesc.setTextSize(14);
                     txtDesc.setText(title);
 
                     barDescView.addView(txtDesc);
@@ -445,6 +471,224 @@ public class KeyTrendsFragment extends Fragment {
                 e.printStackTrace();
             }
         }
+
+        public void showGraph(){
+
+            int barWidth = 20;
+            int barSpace = 4;
+            int barGroupSpace = 16;
+            int startOffset = 64;
+            int yAxisHeight = 138-2;
+
+            float minYAxis;
+            float maxYAxis;
+
+            ArrayList<String> yAxisStrArr = new ArrayList();
+
+            try {
+                //========================================================
+                //==================   Draw Bar Graph    =================
+                //========================================================
+
+                float barGraphWidth = columnCnt * (barWidth + barSpace);
+                if (columnCnt == 0) {
+                    barGroupSpace = barGroupSpace + barWidth;
+                }
+
+                //--------------- Configure Chart Bar Value Array ----------------//
+                JSONArray values = graphDict.getJSONArray("values");
+
+                JSONObject maxValDict = values.getJSONObject(0);
+                for (int i = 1; i < values.length(); i++) {
+                    JSONObject value = values.getJSONObject(i);
+                    double maxTotal = maxValDict.optDouble("Total", 0);
+                    double total = value.optDouble("Total", 0);
+                    if (maxTotal < total) {
+                        maxValDict = value;
+                    }
+                }
+
+                Log.e("maxValDict========", String.valueOf(maxValDict.optInt("Total")));
+
+
+                float eachValHeight;
+                float maxBarVal = 0;
+                float minBarVal = 1000000;
+
+                if (isStack) {
+                    for (int i = 0; i < values.length(); i++) {
+                        JSONObject graphGroupValueDict = values.getJSONObject(i);
+                        float sumVal = 0;
+
+                        for (int j = 0; j < configurationArr.length(); j++) {
+                            JSONObject configurationDict = configurationArr.getJSONObject(j);
+                            String title = configurationDict.optString("title", "");
+
+                            float barVal = (float)graphGroupValueDict.optDouble(title, 0.0);
+                            sumVal += barVal;
+                        }
+
+                        if (sumVal > maxBarVal) {
+                            maxBarVal = sumVal;
+                        }
+                    }
+
+                    maxYAxis = maxBarVal + maxBarVal / 50;
+                    minYAxis = 0;
+
+                    // New Implementation added below 15-12-2017
+
+                    float maxBarValue = (float) maxValDict.optDouble("Total", 0);
+                    maxYAxis = ((maxBarValue - minYAxis) > 5) ? maxBarValue : (maxBarValue + (maxBarValue * 2) / 100);
+                    Log.e("maxYAxis =======", String.valueOf(maxYAxis));
+
+                } else {
+
+                    for (int i = 0; i < values.length(); i++) {
+                        JSONObject graphGroupValueDict = values.getJSONObject(i);
+                        for (int j = 0; j < configurationArr.length(); j++) {
+                            JSONObject configurationDict = configurationArr.getJSONObject(j);
+                            String title = configurationDict.optString("title", "");
+
+                            float barVal = (float)graphGroupValueDict.optDouble(title, 0);
+                            if (barVal > maxBarVal) {
+                                maxBarVal = barVal;
+                            }
+                            if (barVal < minBarVal) {
+                                minBarVal = barVal;
+                            }
+                        }
+                    }
+                    maxYAxis = maxBarVal + maxBarVal / 50;
+                    minYAxis = minBarVal - minBarVal / 50;
+                }
+
+                float yAxisOffset;
+                yAxisOffset = (maxYAxis - minYAxis) / 4;
+
+
+                // New Implementation goes here 29-12-2017
+                if (maxBarVal == minBarVal) {
+                    yAxisStrArr.add("0.0");
+                    String minYAxisStr = String.format("%ld", (long) minYAxis);
+                    if (minYAxisStr.length() >= 5) {
+                        minYAxisStr = String.format("%ldk", (long) (minYAxis / 1000));
+
+                    }
+                    yAxisStrArr.add(minYAxisStr);
+                } else {
+
+                    if ((maxYAxis - minYAxis) > 5) {
+                        for (int i = 0; i < 5; i++) {
+                            String yAxisStr = String.format("%d", (int)(i * yAxisOffset + minYAxis));
+                            if (yAxisStr.length() >= 5) {
+                                yAxisStr = String.format("%dk", (int)(i * yAxisOffset + minYAxis) / 1000 );
+                            }
+                            yAxisStrArr.add(yAxisStr);
+                        }
+
+                    } else {
+                        for (int i = 0; i < 5; i++) {
+                            String yAxisStr = String.format("%.1f", i * yAxisOffset + minYAxis);
+                            if (yAxisStr.length() >= 5) {
+                                yAxisStr = String.format("%.1fk", (i * yAxisOffset + minYAxis) / 1000.0 );
+                            }
+                            yAxisStrArr.add(yAxisStr);
+                        }
+                    }
+                }
+
+
+                if (maxBarVal != 0) {
+                    eachValHeight = yAxisHeight / (maxYAxis - minYAxis);
+
+
+                    //========================================================
+                    //=============   Configure y Axis View  =================
+                    //========================================================
+
+                    float yAxisUnitHeight = yAxisHeight / (yAxisStrArr.size() - 1);
+                    Log.e("length=========", String.valueOf(yAxisStrArr.size()));
+
+                    Bitmap bitmapYAxis = Bitmap.createBitmap(
+                            48, // Width
+                            200, // Height
+                            Bitmap.Config.ARGB_8888 // Config
+                    );
+
+                    DisplayMetrics displayMetrics = new DisplayMetrics();
+                    getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//                    int screenHeight = displayMetrics.heightPixels;
+                    int screenWidth = displayMetrics.widthPixels;
+
+                    int xBaseViewWidth = (int)convertPixelsToDp(screenWidth) - 16 -48;
+
+                    Bitmap bitmapXBase = Bitmap.createBitmap(
+                            xBaseViewWidth, // Width
+                            138, // Height
+                            Bitmap.Config.ARGB_8888 // Config
+                    );
+
+                    // Initialize a new Canvas instance
+                    Canvas canvasYAxis = new Canvas(bitmapYAxis);
+                    Canvas canvasXBase = new Canvas(bitmapXBase);
+
+                    Paint paint = new Paint();
+                    paint.setColor(Color.BLACK);
+                    paint.setStyle(Paint.Style.FILL);
+
+
+
+                    for (int i = 0; i < yAxisStrArr.size(); i++) {
+
+                        if (i == 0) { //yAxisStrArr.size() - 1) {
+                            paint.setColor(ContextCompat.getColor(getContext(), R.color.red));
+                            canvasYAxis.drawRect(39, 0, 45,  2, paint);
+                            paint.setTextSize(10);
+                            paint.setColor(Color.BLACK);
+                            paint.setTextAlign(Paint.Align.RIGHT);
+                            canvasYAxis.drawText(yAxisStrArr.get(yAxisStrArr.size() - 1 - i), 35, 10, paint);
+
+                            paint.setColor(Color.LTGRAY);
+                            canvasXBase.drawRect(0, 0, xBaseViewWidth, 2, paint);
+                        } else {
+                            paint.setColor(ContextCompat.getColor(getContext(), R.color.red));
+                            canvasYAxis.drawRect(39, yAxisUnitHeight * i, 45, yAxisUnitHeight * i + 2, paint);
+                            paint.setTextSize(10);
+                            paint.setColor(Color.BLACK);
+                            paint.setTextAlign(Paint.Align.RIGHT);
+                            canvasYAxis.drawText(yAxisStrArr.get(yAxisStrArr.size() - 1 - i), 35, yAxisUnitHeight * i + 5, paint);
+
+                            paint.setColor(Color.LTGRAY);
+                            canvasXBase.drawRect(0, yAxisUnitHeight * i, xBaseViewWidth, yAxisUnitHeight * i + 2, paint);
+                        }
+                    }
+
+
+                    yAxisView.setImageBitmap(bitmapYAxis);
+                    xBaseView.setImageBitmap(bitmapXBase);
+
+
+
+
+                }
+            } catch (Exception e) {
+
+            }
+        }
+    }
+
+
+    public static float convertPixelsToDp(float px){
+        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+        float dp = px / (metrics.densityDpi / 160f);
+        return Math.round(dp);
+    }
+
+    public static float convertDpToPixel(float dp){
+        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+        float px = dp * (metrics.densityDpi / 160f);
+        return Math.round(px);
     }
 
 }
