@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.AsyncTask;
@@ -684,8 +685,8 @@ public class KeyTrendsFragment extends Fragment {
                         JSONObject configurationDict = configurationArr.getJSONObject(i);
                         String title = configurationDict.optString("title", "");
                         String type = configurationDict.optString("type",  "");
-                        double lineAlpha = configurationDict.optDouble("lineAlpha", 0);
-                        double fillAlpha = configurationDict.optDouble("fillAlphas", 0);
+                        int lineAlpha = (int)(configurationDict.optDouble("lineAlpha", 0) * 100);
+                        int fillAlpha = (int)(100 * configurationDict.optDouble("fillAlphas", 0));
 
                         int fillColor;
                         String fillColorString = configurationDict.optString("fillColors", null);
@@ -715,7 +716,6 @@ public class KeyTrendsFragment extends Fragment {
                                     prevValSumArr.set(j, new Float(sumVal));
 
                                     paint.setColor(fillColor);
-//                                    paint.setAlpha((int)(fillAlpha * 100));
                                     float left = startOffset + j * (barGroupWidth + barGroupSpace);
                                     float top = yAxisHeight - sumVal * eachValHeight;
                                     float right = left + barWidth;
@@ -733,17 +733,103 @@ public class KeyTrendsFragment extends Fragment {
                                     }
 
                                     paint.setColor(fillColor);
-//                                    paint.setAlpha((int)(fillAlpha * 100));
                                     float left = startOffset + columnIndex * (barWidth + barSpace) + j * (barGroupWidth + barGroupSpace);
                                     float top = yAxisHeight - barVal * eachValHeight;
                                     float right = left + barWidth;
                                     float bottom = top + barVal * eachValHeight;
-                                    
+
                                     canvasGraph.drawRect(left, top, right, bottom, paint);
                                 }
                                 columnIndex ++;
                             }
+                        } else {
+
+                            ArrayList<Point> linePointArr = new ArrayList<Point>();
+                            for (int j = 0; j < values.length(); j++) {
+                                JSONObject barGroupDict = values.getJSONObject(j);
+                                float lineVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
+                                if (lineVal < 0) {
+                                    lineVal = 0;
+                                }
+                                int middlePosInBars = (int)(startOffset + (barGroupWidth + barGroupSpace) * j + (barGroupWidth - barSpace) / 2.0f);
+
+//                                if (j == 0) {
+//                                    linePointArr.add(new Point(middlePosInBars, yAxisHeight));
+//                                }
+
+                                linePointArr.add(new Point(middlePosInBars, (int)(yAxisHeight - lineVal * eachValHeight)));
+
+//                                if (j == values.length() - 1) {
+//                                    linePointArr.add(new Point(middlePosInBars, yAxisHeight));
+//                                }
+                            }
+
+                            paint.setColor(lineColor);
+                            paint.setStyle(Paint.Style.STROKE);
+                            paint.setStrokeWidth(2);
+                            float linePoints[] = new float[linePointArr.size() * 2];
+                            for (int k = 1; k < linePointArr.size(); k++) {
+
+                                Point start = linePointArr.get(k-1);
+                                Point end = linePointArr.get(k);
+                                canvasGraph.drawLine(start.x, start.y, end.x, end.y, paint);
+                            }
+
                         }
+
+                    }
+
+                    //========================================================
+                    //=====================   Draw Dot  ======================
+                    //========================================================
+
+                    for (int i = 0; i < configurationArr.length(); i++) {
+                        JSONObject configurationDict = configurationArr.getJSONObject(i);
+                        String title = configurationDict.optString("title", "");
+                        String type = configurationDict.optString("type", "");
+
+                        int lineColor;
+                        String lineColorString = configurationDict.optString("lineColor", null);
+                        if (lineColorString == null) {
+                            lineColor = Integer.parseInt(graphColorArr.get(i));
+                        } else {
+                            lineColor = Color.parseColor(lineColorString);
+                        }
+
+                        if (type.equals("line")) {
+                            for (int j = 0; j < values.length(); j++) {
+                                JSONObject barGroupDict = values.getJSONObject(j);
+                                float lineVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
+                                if (lineVal < 0) lineVal = 0;
+
+                                float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * j + (barGroupWidth - barSpace) / 2;
+
+                                paint.setStyle(Paint.Style.FILL);
+                                paint.setColor(lineColor);
+                                canvasGraph.drawCircle(middlePosInBars, yAxisHeight - lineVal * eachValHeight, 3.5f, paint);
+                            }
+                        }
+                    }
+
+
+                    //========================================================
+                    //=====================   Draw Dot  ======================
+                    //========================================================
+
+                    for (int i = 0; i < values.length(); i++) {
+                        JSONObject graphGroupValueDict = values.getJSONObject(i);
+
+                        String dateStr = graphGroupValueDict.optString("ValueDateString", "");
+                        float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * i + (barGroupWidth - barSpace) / 2;
+
+                        paint.setStyle(Paint.Style.FILL);
+                        paint.setColor(Color.DKGRAY);
+                        canvasGraph.drawRect(middlePosInBars - 1, yAxisHeight + 2, middlePosInBars + 1, yAxisHeight + 8, paint);
+
+                        canvasGraph.save();
+                        canvasGraph.rotate(-60, (float)(middlePosInBars+4), (float)(yAxisHeight + 15));
+                        canvasGraph.drawText(dateStr, (float)(middlePosInBars+4), (float)(yAxisHeight + 15), paint);
+                        canvasGraph.restore();
                     }
 
                     imgGraph.setImageBitmap(bitmapGraph);
