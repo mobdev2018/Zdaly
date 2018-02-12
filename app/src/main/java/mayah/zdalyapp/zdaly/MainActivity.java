@@ -35,8 +35,6 @@ public class MainActivity extends FragmentActivity {
     Button btnSpotPrices;
     @BindView(R.id.btnWeatherForecast)
     Button btnWeatherForecast;
-    @BindView(R.id.frame_container)
-    FrameLayout frameLayout;
 
     @BindView(R.id.loadingView)
     RelativeLayout loadingView;
@@ -54,7 +52,7 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        selectedIndex = 2;
+        selectedIndex = 1;
         displayView(selectedIndex);
     }
 

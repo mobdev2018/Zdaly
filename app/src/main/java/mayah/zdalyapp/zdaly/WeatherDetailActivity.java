@@ -1,15 +1,12 @@
 package mayah.zdalyapp.zdaly;
 
 import android.content.Context;
-import android.content.Intent;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -17,12 +14,10 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import mayah.zdalyapp.zdaly.fragments.DailyNewsFragment;
 import mayah.zdalyapp.zdaly.util.SetImageFromURL;
 
 public class WeatherDetailActivity extends AppCompatActivity {

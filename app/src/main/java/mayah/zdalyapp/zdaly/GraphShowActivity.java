@@ -33,7 +33,6 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.IllegalFormatCodePointException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -51,8 +50,6 @@ public class GraphShowActivity extends AppCompatActivity {
     TextView txtTitle;
     @BindView(R.id.descView)
     LinearLayout descView;
-    @BindView(R.id.graphView)
-    View graphView;
 
     @BindView(R.id.yAxisView)
     ImageView yAxisView;
@@ -554,15 +551,8 @@ public class GraphShowActivity extends AppCompatActivity {
                             }
                             int middlePosInBars = (int)(startOffset + (barGroupWidth + barGroupSpace) * j + (barGroupWidth - barSpace) / 2.0f);
 
-//                                if (j == 0) {
-//                                    linePointArr.add(new Point(middlePosInBars, yAxisHeight));
-//                                }
-
                             linePointArr.add(new Point(middlePosInBars, (int)(yAxisHeight - lineVal * eachValHeight)));
 
-//                                if (j == values.length() - 1) {
-//                                    linePointArr.add(new Point(middlePosInBars, yAxisHeight));
-//                                }
                         }
 
                         paint.setColor(lineColor);

@@ -33,7 +33,7 @@ public class SetImageFromURL extends AsyncTask<Void, Bitmap, Bitmap> {
             connection.setDoInput(true);
             connection.connect();
 
-            InputStream is = url.openStream(); //connection.getInputStream();
+            InputStream is = url.openStream();
             bitmap = BitmapFactory.decodeStream(is);
 
         } catch (Exception e) {
