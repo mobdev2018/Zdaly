@@ -50,6 +50,8 @@ import java.util.zip.Inflater;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+import mayah.zdalyapp.zdaly.GraphShowActivity;
 import mayah.zdalyapp.zdaly.MainActivity;
 import mayah.zdalyapp.zdaly.MarineDetailActivity;
 import mayah.zdalyapp.zdaly.R;
@@ -347,8 +349,15 @@ public class KeyTrendsFragment extends Fragment {
             configurationArr = new JSONArray();
         }
 
-        public void setGraphDict(JSONObject graphDict)  {
 
+        @OnClick(R.id.btnZoom)
+        public void onZoom() {
+            GraphShowActivity.graphDict = this.graphDict;
+            Intent intent = new Intent(getActivity(), GraphShowActivity.class);
+            startActivity(intent);
+        }
+
+        public void setGraphDict(JSONObject graphDict)  {
             this.graphDict = graphDict;
             showHeaderView();
             showGraph();
@@ -611,7 +620,7 @@ public class KeyTrendsFragment extends Fragment {
                     getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
                     int screenWidth = displayMetrics.widthPixels;
-                    int xBaseViewWidth = (int)convertPixelsToDp(screenWidth) - 16 -48;
+                    int xBaseViewWidth = (int)Util.convertPixelsToDp(screenWidth) - 16 -48;
 
                     Bitmap bitmapXBase = Bitmap.createBitmap(
                             xBaseViewWidth, // Width
@@ -840,19 +849,6 @@ public class KeyTrendsFragment extends Fragment {
 
             }
         }
-    }
-
-
-    public static float convertPixelsToDp(float px){
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        float dp = px / (metrics.densityDpi / 160f);
-        return Math.round(dp);
-    }
-
-    public static float convertDpToPixel(float dp){
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        float px = dp * (metrics.densityDpi / 160f);
-        return Math.round(px);
     }
 
 }
