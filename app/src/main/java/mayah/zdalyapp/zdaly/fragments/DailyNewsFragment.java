@@ -167,18 +167,33 @@ public class DailyNewsFragment extends Fragment {
     @OnClick(R.id.btnShareSelectedNews)
     public void onShareSelectedSearchNews() {
         if (searchedNewsToShareArr.length() > 0) {
-            JSONArray activityItems = new JSONArray();
-//            activityItems.put()
 
+            StringBuffer acitivityItems = new StringBuffer("<!doctype html><html><body><br>");
 
+            try {
+                for (int i = 0; i < searchedNewsToShareArr.length(); i++) {
+                    JSONObject newsDict = searchedNewsToShareArr.getJSONObject(i);
 
+                    String titleString = String.format("<div style='font-size: 12px; color: #3d86c7;'><a href='%s'>%s</a></div>", newsDict.optString("LINK", ""), newsDict.optString("TITLE", ""));
+                    String sourceString = String.format("<div style='font-weight: bold;'>%s</div>", newsDict.optString("SOURCE", ""));
+                    String descString = String.format("<div style='text-align: justify;'>%s</div>", newsDict.optString("DES", ""));
+                    String dateString = String.format("<div>%s</div>", newsDict.optString("DATE", ""));
 
+                    String totalHtml = String.format("<div style='font-size:10px; font-family: sans-serif; color: #000;'>%s%s%s%s</div>", titleString, sourceString, descString, dateString);
+                    acitivityItems.append(totalHtml);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
+            acitivityItems.append("</body></html>");
 
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Searched news for " + getText(txtSearch));
+            shareIntent.putExtra(Intent.EXTRA_TEXT, acitivityItems.toString());
 
-
-
-
+            startActivity(Intent.createChooser(shareIntent, "Share"));
 
         }
     }
