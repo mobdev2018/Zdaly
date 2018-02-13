@@ -32,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -239,9 +240,11 @@ public class KeyTrendsFragment extends Fragment {
 
     public void addColorsToGraphColorArr(int count) {
         for (int i = 0; i < count; i++) {
-            int r = (int)(Math.random() * 100) % 255;
-            int g = (int)(Math.random() * 100) % 255;
-            int b = (int)(Math.random() * 100) % 255;
+
+            Random random = new Random();
+            int r = random.nextInt(200) + 55;
+            int g = random.nextInt(200) + 55;
+            int b = random.nextInt(200) + 55;
 
             int newColor = Color.rgb(r, g, b);
 
@@ -657,7 +660,6 @@ public class KeyTrendsFragment extends Fragment {
                     int scrollWidth = (int)(startOffset + (barGroupSpace + barGroupWidth) * values.length());
                     int scrollHeight = imgGraph.getLayoutParams().height;
                     scrollWidth = scrollWidth * scrollHeight / 200;
-                    Log.e("============", String.format("%d, %d", scrollWidth, scrollHeight));
                     LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(scrollWidth, imgGraph.getLayoutParams().height);
                     imgGraph.setLayoutParams(layoutParams);
 
@@ -683,9 +685,12 @@ public class KeyTrendsFragment extends Fragment {
                         int fillColor;
                         String fillColorString = configurationDict.optString("fillColors", null);
 
+
                         if (fillColorString == null) {
+                            Log.e("======", title);
                             fillColor = Integer.parseInt(graphColorArr.get(i));
                         } else {
+                            Log.e("======", fillColorString);
                             fillColor = Color.parseColor(fillColorString);
                         }
 
@@ -745,15 +750,7 @@ public class KeyTrendsFragment extends Fragment {
                                 }
                                 int middlePosInBars = (int)(startOffset + (barGroupWidth + barGroupSpace) * j + (barGroupWidth - barSpace) / 2.0f);
 
-//                                if (j == 0) {
-//                                    linePointArr.add(new Point(middlePosInBars, yAxisHeight));
-//                                }
-
                                 linePointArr.add(new Point(middlePosInBars, (int)(yAxisHeight - lineVal * eachValHeight)));
-
-//                                if (j == values.length() - 1) {
-//                                    linePointArr.add(new Point(middlePosInBars, yAxisHeight));
-//                                }
                             }
 
                             paint.setColor(lineColor);
@@ -805,7 +802,7 @@ public class KeyTrendsFragment extends Fragment {
 
 
                     //========================================================
-                    //=====================   Draw Dot  ======================
+                    //=====================   Draw xAxis  ======================
                     //========================================================
 
                     for (int i = 0; i < values.length(); i++) {
