@@ -91,16 +91,18 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void hideLoadingDialog() {
-        loadingView.animate()
-                .alpha(0.0f)
-                .setDuration(200)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-                        super.onAnimationCancel(animation);
-                        loadingView.setVisibility(View.GONE);
-                    }
-                });
+        if (loadingView.getVisibility() == View.VISIBLE) {
+            loadingView.animate()
+                    .alpha(0.0f)
+                    .setDuration(200)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+                            super.onAnimationCancel(animation);
+                            loadingView.setVisibility(View.GONE);
+                        }
+                    });
+        }
     }
 
     public void showDailyNewsWebView(JSONObject object) {

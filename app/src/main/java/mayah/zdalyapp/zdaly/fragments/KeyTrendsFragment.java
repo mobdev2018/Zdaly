@@ -704,7 +704,7 @@ public class KeyTrendsFragment extends Fragment {
 
                         if (type.equals("column")) {
                             if (isStack) {
-                                for (int j = 0; j < values.length(); j++) {
+                                for (int j = values.length()-1; j >= 0 ; j--) {
                                     JSONObject barGroupDict = values.getJSONObject(j);
                                     float barVal = (float)barGroupDict.optDouble(title, 0);
 
@@ -713,7 +713,7 @@ public class KeyTrendsFragment extends Fragment {
                                     prevValSumArr.set(j, new Float(sumVal));
 
                                     paint.setColor(fillColor);
-                                    float left = startOffset + j * (barGroupWidth + barGroupSpace);
+                                    float left = startOffset + (values.length() - 1 - j) * (barGroupWidth + barGroupSpace);
                                     float top = yAxisHeight - sumVal * eachValHeight;
                                     float right = left + barWidth;
                                     float bottom = top + barVal * eachValHeight;
@@ -721,7 +721,7 @@ public class KeyTrendsFragment extends Fragment {
                                     canvasGraph.drawRect(left, top, right, bottom, paint);
                                 }
                             } else {
-                                for (int j = 0; j < values.length(); j++) {
+                                for (int j = values.length()-1; j >= 0 ; j--) {
                                     JSONObject barGroupDict = values.getJSONObject(j);
                                     float barVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
 
@@ -730,7 +730,7 @@ public class KeyTrendsFragment extends Fragment {
                                     }
 
                                     paint.setColor(fillColor);
-                                    float left = startOffset + columnIndex * (barWidth + barSpace) + j * (barGroupWidth + barGroupSpace);
+                                    float left = startOffset + columnIndex * (barWidth + barSpace) + (values.length() - 1 - j) * (barGroupWidth + barGroupSpace);
                                     float top = yAxisHeight - barVal * eachValHeight;
                                     float right = left + barWidth;
                                     float bottom = top + barVal * eachValHeight;
@@ -742,13 +742,13 @@ public class KeyTrendsFragment extends Fragment {
                         } else {
 
                             ArrayList<Point> linePointArr = new ArrayList<Point>();
-                            for (int j = 0; j < values.length(); j++) {
+                            for (int j = values.length()-1; j >= 0 ; j--) {
                                 JSONObject barGroupDict = values.getJSONObject(j);
                                 float lineVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
                                 if (lineVal < 0) {
                                     lineVal = 0;
                                 }
-                                int middlePosInBars = (int)(startOffset + (barGroupWidth + barGroupSpace) * j + (barGroupWidth - barSpace) / 2.0f);
+                                int middlePosInBars = (int)(startOffset + (barGroupWidth + barGroupSpace) * (values.length() - 1 - j) + (barGroupWidth - barSpace) / 2.0f);
 
                                 linePointArr.add(new Point(middlePosInBars, (int)(yAxisHeight - lineVal * eachValHeight)));
                             }
@@ -786,12 +786,12 @@ public class KeyTrendsFragment extends Fragment {
                         }
 
                         if (type.equals("line")) {
-                            for (int j = 0; j < values.length(); j++) {
+                            for (int j = values.length()-1; j >= 0 ; j--) {
                                 JSONObject barGroupDict = values.getJSONObject(j);
                                 float lineVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
                                 if (lineVal < 0) lineVal = 0;
 
-                                float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * j + (barGroupWidth - barSpace) / 2;
+                                float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * (values.length() - j -1) + (barGroupWidth - barSpace) / 2;
 
                                 paint.setStyle(Paint.Style.FILL);
                                 paint.setColor(lineColor);
@@ -805,11 +805,11 @@ public class KeyTrendsFragment extends Fragment {
                     //=====================   Draw xAxis  ======================
                     //========================================================
 
-                    for (int i = 0; i < values.length(); i++) {
+                    for (int i = values.length()-1; i >= 0 ; i--) {
                         JSONObject graphGroupValueDict = values.getJSONObject(i);
 
                         String dateStr = graphGroupValueDict.optString("ValueDateString", "");
-                        float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * i + (barGroupWidth - barSpace) / 2;
+                        float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * (values.length() - i - 1) + (barGroupWidth - barSpace) / 2;
 
                         paint.setStyle(Paint.Style.FILL);
                         paint.setColor(Color.DKGRAY);

@@ -364,7 +364,6 @@ public class GraphShowActivity extends AppCompatActivity {
                 String minYAxisStr = String.format("%ld", (long) minYAxis);
                 if (minYAxisStr.length() >= 5) {
                     minYAxisStr = String.format("%ldk", (long) (minYAxis / 1000));
-
                 }
                 yAxisStrArr.add(minYAxisStr);
             } else {
@@ -505,7 +504,7 @@ public class GraphShowActivity extends AppCompatActivity {
 
                     if (type.equals("column")) {
                         if (isStack) {
-                            for (int j = 0; j < values.length(); j++) {
+                            for (int j = values.length() - 1; j >= 0; j--) {
                                 JSONObject barGroupDict = values.getJSONObject(j);
                                 float barVal = (float)barGroupDict.optDouble(title, 0);
 
@@ -514,7 +513,7 @@ public class GraphShowActivity extends AppCompatActivity {
                                 prevValSumArr.set(j, new Float(sumVal));
 
                                 paint.setColor(fillColor);
-                                float left = startOffset + j * (barGroupWidth + barGroupSpace);
+                                float left = startOffset + (values.length() - j - 1) * (barGroupWidth + barGroupSpace);
                                 float top = yAxisHeight - sumVal * eachValHeight;
                                 float right = left + barWidth;
                                 float bottom = top + barVal * eachValHeight;
@@ -522,7 +521,7 @@ public class GraphShowActivity extends AppCompatActivity {
                                 canvasGraph.drawRect(left, top, right, bottom, paint);
                             }
                         } else {
-                            for (int j = 0; j < values.length(); j++) {
+                            for (int j = values.length() - 1; j >= 0; j--) {
                                 JSONObject barGroupDict = values.getJSONObject(j);
                                 float barVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
 
@@ -531,7 +530,7 @@ public class GraphShowActivity extends AppCompatActivity {
                                 }
 
                                 paint.setColor(fillColor);
-                                float left = startOffset + columnIndex * (barWidth + barSpace) + j * (barGroupWidth + barGroupSpace);
+                                float left = startOffset + columnIndex * (barWidth + barSpace) + (values.length() - j - 1) * (barGroupWidth + barGroupSpace);
                                 float top = yAxisHeight - barVal * eachValHeight;
                                 float right = left + barWidth;
                                 float bottom = top + barVal * eachValHeight;
@@ -543,13 +542,13 @@ public class GraphShowActivity extends AppCompatActivity {
                     } else {
 
                         ArrayList<Point> linePointArr = new ArrayList<Point>();
-                        for (int j = 0; j < values.length(); j++) {
+                        for (int j = values.length() - 1; j >= 0; j--) {
                             JSONObject barGroupDict = values.getJSONObject(j);
                             float lineVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
                             if (lineVal < 0) {
                                 lineVal = 0;
                             }
-                            int middlePosInBars = (int)(startOffset + (barGroupWidth + barGroupSpace) * j + (barGroupWidth - barSpace) / 2.0f);
+                            int middlePosInBars = (int)(startOffset + (barGroupWidth + barGroupSpace) * (values.length() - j - 1) + (barGroupWidth - barSpace) / 2.0f);
 
                             linePointArr.add(new Point(middlePosInBars, (int)(yAxisHeight - lineVal * eachValHeight)));
 
@@ -588,12 +587,12 @@ public class GraphShowActivity extends AppCompatActivity {
                     }
 
                     if (type.equals("line")) {
-                        for (int j = 0; j < values.length(); j++) {
+                        for (int j = values.length() - 1; j >= 0; j--) {
                             JSONObject barGroupDict = values.getJSONObject(j);
                             float lineVal = (float)barGroupDict.optDouble(title, 0) - minYAxis;
                             if (lineVal < 0) lineVal = 0;
 
-                            float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * j + (barGroupWidth - barSpace) / 2;
+                            float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * (values.length() - j - 1) + (barGroupWidth - barSpace) / 2;
 
                             paint.setStyle(Paint.Style.FILL);
                             paint.setColor(lineColor);
@@ -604,14 +603,14 @@ public class GraphShowActivity extends AppCompatActivity {
 
 
                 //========================================================
-                //=====================   Draw Dot  ======================
+                //=====================   Draw xAxis  ======================
                 //========================================================
 
                 for (int i = 0; i < values.length(); i++) {
                     JSONObject graphGroupValueDict = values.getJSONObject(i);
 
                     String dateStr = graphGroupValueDict.optString("ValueDateString", "");
-                    float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * i + (barGroupWidth - barSpace) / 2;
+                    float middlePosInBars = startOffset + (barGroupWidth + barGroupSpace) * (values.length() - i - 1) + (barGroupWidth - barSpace) / 2;
 
                     paint.setStyle(Paint.Style.FILL);
                     paint.setColor(Color.DKGRAY);
