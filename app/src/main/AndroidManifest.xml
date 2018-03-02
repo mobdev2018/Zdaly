@@ -4,7 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>-->
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -22,6 +22,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBL_N2x5Y59-2apQ3PqsNzXZ4WzuRCQ7Ro" />
+
         <activity
             android:name=".LoginActivity"
             android:screenOrientation="portrait">
@@ -42,12 +47,11 @@
         <activity android:name=".MarineDetailActivity"
             android:screenOrientation="portrait"/>
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCNWRH1m-BIpHCCDLWPgcjAGEDqwSNmHBM" />
 
         <activity android:name=".GraphShowActivity"
             android:screenOrientation="landscape"></activity>
+
+
     </application>
 
 </manifest>

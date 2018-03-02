@@ -55,6 +55,8 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+
+
     @OnClick(R.id.btnLogin)
     public void onLogin() {
         if (termAgreed && !getText(txtName).equals("") && !getText(txtPassword).equals("")) {

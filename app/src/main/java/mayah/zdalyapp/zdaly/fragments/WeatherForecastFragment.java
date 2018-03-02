@@ -103,21 +103,33 @@ public class WeatherForecastFragment extends Fragment{
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Constant.SHARED_PR.SHARE_PREF, Context.MODE_PRIVATE);
         userid = sharedPreferences.getString(Constant.SHARED_PR.KEY_ID, "");
 
-        ((MainActivity)getActivity()).showLoadingDialog("Getting weather list..");
-        (new GetWeatherForecast()).execute();
-
-
-        mapView.onCreate(savedInstanceState);
-        mapView.onResume();
-
         try {
-            MapsInitializer.initialize(getActivity().getApplicationContext());
+            MapsInitializer.initialize(getActivity());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        if (mapView != null) {
+            mapView.onCreate(savedInstanceState);
+        }
+
+        initializeMap();
+
+        ((MainActivity)getActivity()).showLoadingDialog("Getting weather list..");
+        (new GetWeatherForecast()).execute();
+
         return view;
     }
+
+    public void initializeMap() {
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                mMap = googleMap;
+            }
+        });
+    }
+
 
     @Override
     public void onResume() {
@@ -169,6 +181,8 @@ public class WeatherForecastFragment extends Fragment{
         listView.setVisibility(View.GONE);
         mapView.setVisibility(View.VISIBLE);
         listAdapter.notifyDataSetChanged();
+
+        updateMap();
     }
 
     @OnClick(R.id.btnSwitch)
@@ -215,6 +229,10 @@ public class WeatherForecastFragment extends Fragment{
             super.onPostExecute(result);
 
             ((MainActivity)getActivity()).hideLoadingDialog();
+            if (result == null) {
+                toast("Sorry! No data found.");
+                return;
+            }
 
             try {
                 JSONObject resultDic = new JSONObject(result);
@@ -234,41 +252,36 @@ public class WeatherForecastFragment extends Fragment{
 
     private void updateMap() {
         try {
+
             JSONObject firstMarineDict = marineArr.getJSONObject(0);
             final double lat = firstMarineDict.optDouble("lat", 0.0);
             final double lon = firstMarineDict.optDouble("lon", 0.0);
 
-            mapView.getMapAsync(new OnMapReadyCallback() {
+            LatLng coordinate = new LatLng(lat, lon);
+            // For zooming automatically to the location of the marker
+            CameraPosition cameraPosition = new CameraPosition.Builder().target(coordinate).zoom(3).build();
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
-                public void onMapReady(GoogleMap googleMap) {
-                    mMap = googleMap;
+                public boolean onMarkerClick(Marker marker) {
+                    try {
+                        int index = Integer.parseInt(marker.getTitle());
+                        JSONObject weatherDict = annotArr.getJSONObject(index);
 
-                    LatLng coordinate = new LatLng(lat, lon);
-                    // For zooming automatically to the location of the marker
-                    CameraPosition cameraPosition = new CameraPosition.Builder().target(coordinate).zoom(3).build();
-                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                    mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                        @Override
-                        public boolean onMarkerClick(Marker marker) {
-                            try {
-                                int index = Integer.parseInt(marker.getTitle());
-                                JSONObject weatherDict = annotArr.getJSONObject(index);
-
-                                MarineDetailActivity.oceanDict = weatherDict;
-                                Intent intent = new Intent(getActivity(), MarineDetailActivity.class);
-                                startActivity(intent);
+                        MarineDetailActivity.oceanDict = weatherDict;
+                        Intent intent = new Intent(getActivity(), MarineDetailActivity.class);
+                        startActivity(intent);
 
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
-                            return true;
-                        }
-                    });
-                    addAnnotations();
+                    return true;
                 }
             });
+            addAnnotations();
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -276,6 +289,7 @@ public class WeatherForecastFragment extends Fragment{
     }
 
     private void addAnnotations () {
+        mMap.clear();
         annotArr = new JSONArray();
         try {
             for (int i = 0; i < marineArr.length(); i++) {
